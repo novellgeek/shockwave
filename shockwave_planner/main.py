@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
-SHOCKWAVE PLANNER v1.0
+SHOCKWAVE PLANNER v1.1
 Desktop Launch Operations Planning System
-For tracking Chinese launch activities
+Enhanced with Timeline View, Date Filters, and NOTAM Support
 
-Author: Remix Astronautics
+Author: Remix Astronautics  
 Date: November 2025
+Version: 1.1.0
 """
 import sys
 from PyQt6.QtWidgets import QApplication
@@ -21,7 +22,7 @@ def main():
     )
     
     app = QApplication(sys.argv)
-    app.setApplicationName("SHOCKWAVE PLANNER")
+    app.setApplicationName("SHOCKWAVE PLANNER v1.1")
     app.setOrganizationName("Remix Astronautics")
     
     # Set application style

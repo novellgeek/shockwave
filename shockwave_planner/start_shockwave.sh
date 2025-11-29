@@ -1,9 +1,8 @@
 #!/bin/bash
-# SHOCKWAVE PLANNER Quick Start Script
-# Remix Astronautics
+# SHOCKWAVE PLANNER v1.1 Quick Start Script
 
 echo "=========================================="
-echo "  SHOCKWAVE PLANNER v1.0"
+echo "  SHOCKWAVE PLANNER v1.1"
 echo "  Launch Operations Planning System"
 echo "=========================================="
 echo ""
@@ -27,7 +26,7 @@ else
 fi
 
 echo ""
-echo "Starting SHOCKWAVE PLANNER..."
+echo "Starting SHOCKWAVE PLANNER v1.1..."
 echo ""
 
 # Run the application

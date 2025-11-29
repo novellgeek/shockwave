@@ -1,167 +1,26 @@
 """
-SHOCKWAVE PLANNER - Main Window
-Calendar-based launch tracking interface
+SHOCKWAVE PLANNER v1.1 - Main Window
+Enhanced with Timeline View, Date Filters, and NOTAM support
 """
-from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
-                              QTableWidget, QTableWidgetItem, QPushButton, 
-                              QLabel, QComboBox, QLineEdit, QDateEdit, QTimeEdit,
-                              QTextEdit, QDialog, QFormLayout, QDialogButtonBox,
-                              QHeaderView, QMessageBox, QSplitter, QTabWidget,
-                              QGroupBox)
-from PyQt6.QtCore import Qt, QDate, QTime, pyqtSignal
-from PyQt6.QtGui import QColor, QFont, QAction
-from datetime import datetime, date
-import calendar
+from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+                              QPushButton, QLabel, QTabWidget, QGroupBox,
+                              QDialog, QFormLayout, QDialogButtonBox, QLineEdit,
+                              QComboBox, QDateEdit, QTimeEdit, QTextEdit,
+                              QMessageBox)
+from PyQt6.QtCore import Qt, QDate, QTime
+from PyQt6.QtGui import QAction, QFont
+from datetime import datetime
 import sys
 import os
 
-# Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from data.database import LaunchDatabase
-
-
-class CalendarView(QWidget):
-    """Calendar widget showing launches by month"""
-    
-    launch_selected = pyqtSignal(int)  # Emits launch_id when launch is clicked
-    
-    def __init__(self, db: LaunchDatabase):
-        super().__init__()
-        self.db = db
-        self.current_year = datetime.now().year
-        self.current_month = datetime.now().month
-        self.init_ui()
-    
-    def init_ui(self):
-        layout = QVBoxLayout()
-        
-        # Month/Year navigation
-        nav_layout = QHBoxLayout()
-        
-        self.prev_button = QPushButton("◀ Previous")
-        self.prev_button.clicked.connect(self.previous_month)
-        
-        self.month_label = QLabel()
-        self.month_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        font = QFont()
-        font.setPointSize(14)
-        font.setBold(True)
-        self.month_label.setFont(font)
-        
-        self.next_button = QPushButton("Next ▶")
-        self.next_button.clicked.connect(self.next_month)
-        
-        nav_layout.addWidget(self.prev_button)
-        nav_layout.addWidget(self.month_label, 1)
-        nav_layout.addWidget(self.next_button)
-        
-        # Calendar table
-        self.calendar_table = QTableWidget()
-        self.calendar_table.setColumnCount(7)
-        self.calendar_table.setHorizontalHeaderLabels(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
-        self.calendar_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.calendar_table.verticalHeader().setVisible(False)
-        self.calendar_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.calendar_table.cellClicked.connect(self.cell_clicked)
-        
-        layout.addLayout(nav_layout)
-        layout.addWidget(self.calendar_table)
-        
-        self.setLayout(layout)
-        self.update_calendar()
-    
-    def update_calendar(self):
-        """Update calendar view with current month"""
-        self.month_label.setText(f"{calendar.month_name[self.current_month]} {self.current_year}")
-        
-        # Get launches for this month
-        launches = self.db.get_launches_by_month(self.current_year, self.current_month)
-        
-        # Build calendar grid
-        cal = calendar.monthcalendar(self.current_year, self.current_month)
-        self.calendar_table.setRowCount(len(cal))
-        
-        # Clear existing content
-        self.calendar_table.clearContents()
-        
-        # Fill calendar
-        for week_idx, week in enumerate(cal):
-            for day_idx, day in enumerate(week):
-                if day == 0:
-                    item = QTableWidgetItem("")
-                    item.setBackground(QColor(240, 240, 240))
-                    self.calendar_table.setItem(week_idx, day_idx, item)
-                else:
-                    # Get launches for this day
-                    day_launches = [l for l in launches if 
-                                   datetime.strptime(l['launch_date'], '%Y-%m-%d').day == day]
-                    
-                    cell_text = f"{day}"
-                    if day_launches:
-                        cell_text += f"\n\n"
-                        for launch in day_launches:
-                            rocket = launch.get('rocket_name', 'Unknown')[:15]
-                            payload = launch.get('payload_name', '')[:20]
-                            time_str = launch.get('launch_time', 'TBD')
-                            if time_str and time_str != 'TBD':
-                                time_str = time_str[:5]  # HH:MM
-                            cell_text += f"{time_str} {rocket}\n{payload}\n"
-                    
-                    item = QTableWidgetItem(cell_text)
-                    item.setData(Qt.ItemDataRole.UserRole, day)  # Store day number
-                    
-                    # Color based on launch status
-                    if day_launches:
-                        # Use the first launch's status color
-                        status_color = day_launches[0].get('status_color', '#FFFFFF')
-                        item.setBackground(QColor(status_color))
-                        if len(day_launches) > 1:
-                            font = item.font()
-                            font.setBold(True)
-                            item.setFont(font)
-                    else:
-                        item.setBackground(QColor(255, 255, 255))
-                    
-                    self.calendar_table.setItem(week_idx, day_idx, item)
-        
-        # Adjust row heights
-        for row in range(self.calendar_table.rowCount()):
-            self.calendar_table.setRowHeight(row, 100)
-    
-    def previous_month(self):
-        """Go to previous month"""
-        self.current_month -= 1
-        if self.current_month < 1:
-            self.current_month = 12
-            self.current_year -= 1
-        self.update_calendar()
-    
-    def next_month(self):
-        """Go to next month"""
-        self.current_month += 1
-        if self.current_month > 12:
-            self.current_month = 1
-            self.current_year += 1
-        self.update_calendar()
-    
-    def cell_clicked(self, row: int, col: int):
-        """Handle calendar cell click"""
-        item = self.calendar_table.item(row, col)
-        if item:
-            day = item.data(Qt.ItemDataRole.UserRole)
-            if day:
-                # Get launches for this day
-                launches = self.db.get_launches_by_month(self.current_year, self.current_month)
-                day_launches = [l for l in launches if 
-                               datetime.strptime(l['launch_date'], '%Y-%m-%d').day == day]
-                
-                if day_launches:
-                    # Emit signal with first launch ID
-                    self.launch_selected.emit(day_launches[0]['launch_id'])
+from gui.timeline_view import TimelineView
+from gui.enhanced_list_view import EnhancedListView
 
 
 class LaunchEditorDialog(QDialog):
-    """Dialog for adding/editing launch records"""
+    """Dialog for adding/editing launch records with NOTAM support"""
     
     def __init__(self, db: LaunchDatabase, launch_id: int = None, parent=None):
         super().__init__(parent)
@@ -214,6 +73,11 @@ class LaunchEditorDialog(QDialog):
         self.orbit_combo.addItems(['LEO', 'SSO', 'GTO', 'GEO', 'MEO', 'HEO', 'Lunar', 'Other'])
         layout.addRow("Orbit Type:", self.orbit_combo)
         
+        # NOTAM - NEW in v1.1
+        self.notam_edit = QLineEdit()
+        self.notam_edit.setPlaceholderText("e.g., A1234/25")
+        layout.addRow("NOTAM Reference:", self.notam_edit)
+        
         # Status
         self.status_combo = QComboBox()
         statuses = self.db.get_all_statuses()
@@ -238,7 +102,7 @@ class LaunchEditorDialog(QDialog):
         self.setLayout(layout)
     
     def load_launch_data(self):
-        """Load existing launch data for editing"""
+        """Load existing launch data"""
         launches = self.db.get_launches_by_date_range('1900-01-01', '2100-01-01')
         launch = next((l for l in launches if l['launch_id'] == self.launch_id), None)
         
@@ -251,7 +115,6 @@ class LaunchEditorDialog(QDialog):
                 time_obj = datetime.strptime(launch['launch_time'], '%H:%M:%S').time()
                 self.time_edit.setTime(QTime(time_obj.hour, time_obj.minute, time_obj.second))
             
-            # Set comboboxes
             if launch['site_id']:
                 index = self.site_combo.findData(launch['site_id'])
                 if index >= 0:
@@ -269,6 +132,7 @@ class LaunchEditorDialog(QDialog):
             
             self.mission_edit.setText(launch.get('mission_name') or '')
             self.payload_edit.setText(launch.get('payload_name') or '')
+            self.notam_edit.setText(launch.get('notam_reference') or '')
             
             if launch.get('orbit_type'):
                 index = self.orbit_combo.findText(launch['orbit_type'])
@@ -288,6 +152,7 @@ class LaunchEditorDialog(QDialog):
             'payload_name': self.payload_edit.text(),
             'orbit_type': self.orbit_combo.currentText(),
             'status_id': self.status_combo.currentData(),
+            'notam_reference': self.notam_edit.text(),
             'remarks': self.remarks_edit.toPlainText()
         }
         
@@ -299,94 +164,8 @@ class LaunchEditorDialog(QDialog):
         self.accept()
 
 
-class LaunchListView(QWidget):
-    """List view of launches with search and filtering"""
-    
-    launch_selected = pyqtSignal(int)
-    
-    def __init__(self, db: LaunchDatabase):
-        super().__init__()
-        self.db = db
-        self.init_ui()
-    
-    def init_ui(self):
-        layout = QVBoxLayout()
-        
-        # Search bar
-        search_layout = QHBoxLayout()
-        search_layout.addWidget(QLabel("Search:"))
-        
-        self.search_edit = QLineEdit()
-        self.search_edit.setPlaceholderText("Search by mission, payload, or rocket...")
-        self.search_edit.textChanged.connect(self.perform_search)
-        search_layout.addWidget(self.search_edit)
-        
-        layout.addLayout(search_layout)
-        
-        # Launch table
-        self.launch_table = QTableWidget()
-        self.launch_table.setColumnCount(7)
-        self.launch_table.setHorizontalHeaderLabels([
-            'Date', 'Time', 'Site', 'Rocket', 'Mission', 'Payload', 'Status'
-        ])
-        self.launch_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.launch_table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.launch_table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.launch_table.cellDoubleClicked.connect(self.on_launch_double_clicked)
-        
-        layout.addWidget(self.launch_table)
-        
-        self.setLayout(layout)
-        self.load_launches()
-    
-    def load_launches(self, launches=None):
-        """Load launches into table"""
-        if launches is None:
-            # Load recent launches
-            end_date = datetime.now()
-            start_date = datetime(end_date.year, end_date.month - 2, 1)
-            launches = self.db.get_launches_by_date_range(
-                start_date.strftime('%Y-%m-%d'),
-                end_date.strftime('%Y-%m-%d')
-            )
-        
-        self.launch_table.setRowCount(len(launches))
-        
-        for row, launch in enumerate(launches):
-            self.launch_table.setItem(row, 0, QTableWidgetItem(launch.get('launch_date', '')))
-            self.launch_table.setItem(row, 1, QTableWidgetItem(launch.get('launch_time', '')[:5] if launch.get('launch_time') else ''))
-            self.launch_table.setItem(row, 2, QTableWidgetItem(f"{launch.get('location', '')} {launch.get('launch_pad', '')}"))
-            self.launch_table.setItem(row, 3, QTableWidgetItem(launch.get('rocket_name', '')))
-            self.launch_table.setItem(row, 4, QTableWidgetItem(launch.get('mission_name', '')))
-            self.launch_table.setItem(row, 5, QTableWidgetItem(launch.get('payload_name', '')))
-            
-            status_item = QTableWidgetItem(launch.get('status_name', ''))
-            if launch.get('status_color'):
-                status_item.setBackground(QColor(launch['status_color']))
-            self.launch_table.setItem(row, 6, status_item)
-            
-            # Store launch_id in first column
-            self.launch_table.item(row, 0).setData(Qt.ItemDataRole.UserRole, launch['launch_id'])
-    
-    def perform_search(self):
-        """Search launches"""
-        search_term = self.search_edit.text()
-        if search_term:
-            launches = self.db.search_launches(search_term)
-            self.load_launches(launches)
-        else:
-            self.load_launches()
-    
-    def on_launch_double_clicked(self, row, col):
-        """Handle double click on launch"""
-        item = self.launch_table.item(row, 0)
-        if item:
-            launch_id = item.data(Qt.ItemDataRole.UserRole)
-            self.launch_selected.emit(launch_id)
-
-
 class MainWindow(QMainWindow):
-    """Main application window"""
+    """Main application window for SHOCKWAVE PLANNER v1.1"""
     
     def __init__(self):
         super().__init__()
@@ -394,10 +173,10 @@ class MainWindow(QMainWindow):
         self.init_ui()
     
     def init_ui(self):
-        self.setWindowTitle("SHOCKWAVE PLANNER v1.0 - Chinese Launch Tracking")
-        self.setGeometry(100, 100, 1400, 900)
+        self.setWindowTitle("SHOCKWAVE PLANNER v1.1 - Launch Operations Planning")
+        self.setGeometry(100, 100, 1600, 900)
         
-        # Create menu bar
+        # Menu bar
         menubar = self.menuBar()
         
         # File menu
@@ -422,22 +201,28 @@ class MainWindow(QMainWindow):
         refresh_action.triggered.connect(self.refresh_all)
         view_menu.addAction(refresh_action)
         
-        # Create main widget
+        # Data menu (for future Space Devs integration)
+        data_menu = menubar.addMenu('Data')
+        import_action = QAction('Import from Space Devs... (Coming Soon)', self)
+        import_action.setEnabled(False)
+        data_menu.addAction(import_action)
+        
+        # Central widget
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         
         main_layout = QVBoxLayout()
         
-        # Tab widget for different views
+        # Tab widget
         self.tab_widget = QTabWidget()
         
-        # Calendar view
-        self.calendar_view = CalendarView(self.db)
-        self.calendar_view.launch_selected.connect(self.edit_launch)
-        self.tab_widget.addTab(self.calendar_view, "Calendar View")
+        # Timeline view - NEW in v1.1
+        self.timeline_view = TimelineView(self.db)
+        self.timeline_view.launch_selected.connect(self.edit_launch)
+        self.tab_widget.addTab(self.timeline_view, "Timeline View")
         
-        # List view
-        self.list_view = LaunchListView(self.db)
+        # Enhanced List view - Updated in v1.1
+        self.list_view = EnhancedListView(self.db)
         self.list_view.launch_selected.connect(self.edit_launch)
         self.tab_widget.addTab(self.list_view, "List View")
         
@@ -460,22 +245,25 @@ class MainWindow(QMainWindow):
         
         button_layout.addStretch()
         
+        # Version label
+        version_label = QLabel("v1.1")
+        version_label.setStyleSheet("color: gray;")
+        button_layout.addWidget(version_label)
+        
         main_layout.addLayout(button_layout)
         
         central_widget.setLayout(main_layout)
         
         # Status bar
-        self.statusBar().showMessage("Ready")
+        self.statusBar().showMessage("Ready - SHOCKWAVE PLANNER v1.1")
     
     def create_statistics_widget(self):
-        """Create statistics display widget"""
+        """Create statistics display"""
         widget = QWidget()
         layout = QVBoxLayout()
         
-        # Get statistics
         stats = self.db.get_statistics()
         
-        # Overview group
         overview_group = QGroupBox("Overview")
         overview_layout = QFormLayout()
         overview_layout.addRow("Total Launches:", QLabel(str(stats['total_launches'])))
@@ -491,7 +279,6 @@ class MainWindow(QMainWindow):
         overview_group.setLayout(overview_layout)
         layout.addWidget(overview_group)
         
-        # Top rockets
         rockets_group = QGroupBox("Top 10 Rockets")
         rockets_layout = QVBoxLayout()
         rockets_text = QTextEdit()
@@ -503,7 +290,6 @@ class MainWindow(QMainWindow):
         rockets_group.setLayout(rockets_layout)
         layout.addWidget(rockets_group)
         
-        # By site
         sites_group = QGroupBox("Launches by Site")
         sites_layout = QVBoxLayout()
         sites_text = QTextEdit()
@@ -521,7 +307,7 @@ class MainWindow(QMainWindow):
         return widget
     
     def new_launch(self):
-        """Create new launch entry"""
+        """Create new launch"""
         dialog = LaunchEditorDialog(self.db, parent=self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self.refresh_all()
@@ -536,8 +322,8 @@ class MainWindow(QMainWindow):
     
     def refresh_all(self):
         """Refresh all views"""
-        self.calendar_view.update_calendar()
-        self.list_view.load_launches()
+        self.timeline_view.update_timeline()
+        self.list_view.refresh()
         
         # Recreate statistics tab
         stats_widget = self.create_statistics_widget()

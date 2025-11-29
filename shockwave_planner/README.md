@@ -1,180 +1,154 @@
-# SHOCKWAVE PLANNER v1.0
+# SHOCKWAVE PLANNER v1.1
 
-Desktop Launch Operations Planning System for tracking Chinese launch activities.
+**Desktop Launch Operations Planning System**
 
-## Overview
+## What's New in v1.1
 
-SHOCKWAVE PLANNER is a comprehensive desktop application for tracking and managing launch operations data, with a focus on Chinese space launch activities. It features:
+### 🎯 Major Features
 
-- **Calendar View**: Visual monthly calendar showing launches
-- **List View**: Searchable table of all launches
-- **Statistics Dashboard**: Overview of launch statistics and trends
-- **Database-backed**: SQLite database for reliable data storage
-- **Launch Editor**: Easy-to-use interface for adding and editing launches
+1. **Timeline/Gantt View**
+   - Horizontal timeline showing launches across the month
+   - Grouped by country (China, USA, Russia, Europe, Pacific, etc.)
+   - Collapsible country groups (▶/▼)
+   - Pad turnaround visualization (grey bars after launches)
+   - Show only active sites option
 
-## Features
+2. **Enhanced List View with Date Filters**
+   - **Previous 7 Days** - Last week's launches
+   - **Previous 30 Days** - Last month's launches
+   - **Current (Today)** - Today's launches only
+   - **Next 30 Days** - Upcoming month
+   - **Custom Range** - Pick any date range
 
-### Data Tracking
-- Launch dates and times
-- Launch sites and pads
-- Rocket types and configurations
-- Mission names and payloads
-- Orbit types and parameters
-- Launch status tracking
-- Success/failure records
-- Remarks and notes
+3. **NOTAM Field**
+   - Track Notice to Airmen references
+   - Searchable in list view
+   - Highlighted when present
+   - Foundation for future NOTAM mapping
 
-### Pre-populated Data
-- 15+ Chinese launch sites (Jiuquan, Taiyuan, Xichang, Wenchang)
-- 25+ rocket types (Long March series, commercial launchers)
-- 7 launch status types
-- Sample launch data for November-December 2025
+4. **Space Devs Integration Ready**
+   - API importer included
+   - Automatic launch data import
+   - Chinese launch filtering
+   - Rate limiting built-in
 
-### User Interface
-- **Calendar View**: Color-coded monthly calendar with launch details
-- **List View**: Searchable and sortable launch list
-- **Statistics**: Launch success rates, top rockets, site usage
-- **Launch Editor**: Form-based entry/editing with validation
+## Quick Start
 
-## Installation
-
-### Requirements
-- Python 3.9+
-- PyQt6
-
-### Setup
 ```bash
+# Install PyQt6 (if not already installed)
 pip install PyQt6 --break-system-packages
-
-# Clone or download the application
-cd shockwave_planner
 
 # Run the application
 python3 main.py
 ```
 
-## Usage
+## Features
 
-### Starting the Application
-```bash
-python3 /home/claude/shockwave_planner/main.py
+### Timeline View
+- **Monthly calendar** with horizontal day layout
+- **Country grouping** - click to expand/collapse
+- **Color-coded status** - Yellow (Scheduled), Green (Success), etc.
+- **Pad turnaround** - Grey bars show unavailable days
+- **Smart filtering** - Hide sites without launches
+
+### List View
+- **Quick date filters** - Previous 7/30, Current, Next 30 days
+- **Custom date range** - Pick any start/end dates
+- **NOTAM tracking** - Yellow highlight for launches with NOTAMs
+- **Real-time search** - Search mission, payload, rocket, NOTAM
+- **Status display** - Shows X launches in current filter
+
+### Launch Editor
+- All fields from v1.0
+- **NEW: NOTAM Reference** field
+- Easy dropdown selection
+- Date/time pickers
+- Auto-save with validation
+
+## Database Schema Changes
+
+New fields in v1.1:
+```sql
+ALTER TABLE launches ADD COLUMN notam_reference TEXT;
+ALTER TABLE launches ADD COLUMN data_source TEXT DEFAULT 'Manual';
+ALTER TABLE launches ADD COLUMN external_id TEXT;
+ALTER TABLE launches ADD COLUMN last_synced DATETIME;
 ```
 
-### Adding a Launch
-1. Click "➕ New Launch" button or press Ctrl+N
-2. Fill in the launch details:
-   - Date and time
-   - Launch site and pad
-   - Rocket type
-   - Mission and payload names
-   - Orbit type
-   - Status
-   - Optional remarks
-3. Click "Save"
+## File Structure
 
-### Editing a Launch
-1. Double-click a launch in List View, or
-2. Click a day with launches in Calendar View
-3. Modify the details
-4. Click "Save"
-
-### Searching Launches
-- Use the search box in List View
-- Search by mission name, payload, or rocket type
-- Results update as you type
-
-### Navigating the Calendar
-- Use "◀ Previous" and "Next ▶" buttons to change months
-- Click on any day to view/edit launches
-- Color coding indicates launch status:
-  - Yellow: Scheduled
-  - Green: Go/Success
-  - Orange: Scrubbed
-  - Red: Failure
-  - Gray: Unknown
-
-## Database Schema
-
-### Tables
-- **launch_sites**: Launch facility locations and pads
-- **rockets**: Rocket types and specifications
-- **launch_vehicles**: Specific rocket configurations
-- **launch_status**: Status types (Scheduled, Success, etc.)
-- **launches**: Main launch records
-- **launch_tles**: TLE data associated with launches
-- **launch_predictions**: Predicted vs actual launch times
-
-### Database Location
-`shockwave_planner.db` in the application directory
-
-## Integration with TAWHIRI
-
-SHOCKWAVE PLANNER is designed to integrate with the TAWHIRI space domain awareness platform:
-
-- Shared SQLite database format
-- TLE tracking integration
-- Compatible launch site nomenclature
-- Space weather correlation (planned)
+```
+shockwave_v1.1/
+├── main.py                    # Application entry point
+├── gui/
+│   ├── main_window.py         # Main window with tabs
+│   ├── timeline_view.py       # NEW - Gantt-style timeline
+│   └── enhanced_list_view.py  # NEW - Enhanced with date filters
+├── data/
+│   ├── database.py            # Database layer (updated schema)
+│   └── spacedevs_import.py    # Space Devs API importer
+├── shockwave_planner.db       # SQLite database (updated)
+└── populate_sample_data.py    # Sample data generator
+```
 
 ## Keyboard Shortcuts
 
-- `Ctrl+N`: New Launch
-- `Ctrl+Q`: Exit
-- `F5`: Refresh all views
+- `Ctrl+N` - New Launch
+- `Ctrl+Q` - Exit
+- `F5` - Refresh All Views
 
-## Data Sources
+## Space Devs Integration
 
-Pre-populated data includes:
-- Chinese launch sites from public sources
-- Long March rocket family specifications
-- Commercial launcher data (Galactic Energy, Landspace, i-Space, etc.)
-- Historical launch records
+The Space Devs importer is included but not yet integrated into the UI.
 
-## Future Enhancements
+To use it now:
+```python
+from data.database import LaunchDatabase
+from data.spacedevs_import import SpaceDevsImporter
 
-Planned features based on specification:
-- Orbital element tracking
-- Conjunction screening
-- Launch window calculations
-- Space weather integration
-- Re-entry predictions
-- TLE scraping and auto-update
-- Export to Excel/PDF
-- Launch manifest import
-- Multi-country support
+db = LaunchDatabase('shockwave_planner.db')
+importer = SpaceDevsImporter(db)
 
-## Technical Details
+# Import Chinese launches for December
+launches = importer.fetch_chinese_launches('2025-12-01', '2025-12-31')
+stats = importer.import_batch(launches)
 
-### Architecture
-```
-shockwave_planner/
-├── main.py                 # Application entry point
-├── gui/
-│   └── main_window.py     # Main window and UI components
-├── data/
-│   └── database.py        # Database layer
-└── resources/             # Icons and assets (future)
+print(f"Imported {stats['imported']} launches")
 ```
 
-### Technology Stack
-- **GUI Framework**: PyQt6
-- **Database**: SQLite3
-- **Language**: Python 3.9+
+## Migration from v1.0
 
-## License
+v1.1 is **fully backward compatible** with v1.0:
+- Same database file works
+- All v1.0 data preserved
+- New fields added automatically
+- No data migration needed
 
-Proprietary - Remix Astronautics
+Simply run v1.1 with your existing database!
 
-## Author
+## Future Roadmap
 
-Remix Astronautics
-November 2025
+### v1.1.1 - Space Devs UI
+- Import dialog in GUI
+- Scheduled auto-sync
+- Data source tracking
+
+### v1.1.2 - NOTAM Database
+- Full NOTAM tracking tables
+- Multiple NOTAMs per launch
+- Geometry support
+
+### v1.1.3 - NOTAM Mapping
+- Interactive map visualization
+- 2-day countdown view
+- Airspace conflict detection
 
 ## Support
 
-For issues or questions, contact the development team.
+For questions or issues, contact Remix Astronautics.
 
 ---
 
-**Version**: 1.0.0  
-**Last Updated**: November 29, 2025
+**Version**: 1.1.0  
+**Date**: November 29, 2025  
+**Author**: Remix Astronautics
