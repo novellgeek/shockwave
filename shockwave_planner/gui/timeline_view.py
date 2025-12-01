@@ -167,7 +167,8 @@ class TimelineView(QWidget):
                 font.setBold(True)
                 font.setPointSize(10)
                 item.setFont(font)
-                item.setBackground(QColor(200, 200, 220))
+                item.setBackground(QColor(67, 25, 218))
+                item.setForeground(Qt.GlobalColor.white) 
                 item.setData(Qt.ItemDataRole.UserRole, {'type': 'group', 'country': country})
                 
                 self.timeline_table.setItem(row_idx, 0, item)
