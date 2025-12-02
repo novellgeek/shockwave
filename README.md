@@ -1,6 +1,6 @@
 # SHOCKWAVE PLANNER v1.0
 
-Desktop Launch Operations Planning System for tracking Chinese launch activities.
+Desktop Launch Operations Planning System for tracking launch activities.
 
 ## Overview
 
