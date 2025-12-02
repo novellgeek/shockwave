@@ -167,7 +167,8 @@ class TimelineView(QWidget):
                 font.setBold(True)
                 font.setPointSize(10)
                 item.setFont(font)
-                item.setBackground(QColor(200, 200, 220))
+                item.setBackground(QColor(67, 25, 218))
+                item.setForeground(Qt.GlobalColor.white) 
                 item.setData(Qt.ItemDataRole.UserRole, {'type': 'group', 'country': country})
                 
                 self.timeline_table.setItem(row_idx, 0, item)
@@ -177,10 +178,12 @@ class TimelineView(QWidget):
                 location_item = QTableWidgetItem(row_data['location'])
                 location_item.setBackground(QColor(240, 240, 245))
                 self.timeline_table.setItem(row_idx, 0, location_item)
+                location_item.setForeground(Qt.GlobalColor.black)
                 
                 pad_item = QTableWidgetItem(row_data['pad'])
                 pad_item.setBackground(QColor(240, 240, 245))
                 self.timeline_table.setItem(row_idx, 1, pad_item)
+                pad_item.setForeground(Qt.GlobalColor.black)
                 
                 rockets = set()
                 for launch in row_data['launches']:
@@ -190,6 +193,7 @@ class TimelineView(QWidget):
                 rocket_item = QTableWidgetItem(", ".join(sorted(rockets)[:2]))
                 rocket_item.setBackground(QColor(240, 240, 245))
                 self.timeline_table.setItem(row_idx, 2, rocket_item)
+                rocket_item.setForeground(Qt.GlobalColor.black)
                 
                 for col_day in range(1, days_in_month + 1):
                     col_idx = 2 + col_day

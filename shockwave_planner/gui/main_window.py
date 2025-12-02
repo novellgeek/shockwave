@@ -207,6 +207,18 @@ class MainWindow(QMainWindow):
         import_action.setEnabled(False)
         data_menu.addAction(import_action)
         
+        file_menu.addSeparator()
+
+        import_action = QAction('Manual Edit (Coming Soon)', self)
+        import_action.setEnabled(False)
+        data_menu.addAction(import_action)
+
+        file_menu.addSeparator()
+
+        import_action = QAction('Database Admin (Coming Soon)', self)
+        import_action.setEnabled(False)
+        data_menu.addAction(import_action)
+        
         # Central widget
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
