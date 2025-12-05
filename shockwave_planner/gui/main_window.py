@@ -201,6 +201,24 @@ class MainWindow(QMainWindow):
         refresh_action.triggered.connect(self.refresh_all)
         view_menu.addAction(refresh_action)
         
+        launch_site_action = QAction('Launch Site', self)
+        launch_site_action.triggered.connect(self.open_launch_site_window)
+        view_menu.addAction(launch_site_action)
+
+        launch_vehicle_action = QAction('Launch Vehicle', self)
+        launch_vehicle_action.triggered.connect(self.open_launch_vehicle_window)
+        view_menu.addAction(launch_vehicle_action)
+
+
+        reentry_vehicle_action = QAction('Re-entry Vehicle', self)
+        reentry_vehicle_action.triggered.connect(self.open_reentry_vehicle_window)
+        view_menu.addAction(reentry_vehicle_action)
+
+
+        support_ship_action = QAction('Support Ship', self)
+        support_ship_action.triggered.connect(self.open_support_ship_window)
+        view_menu.addAction(support_ship_action)
+      
         # Data menu (for future Space Devs integration)
         data_menu = menubar.addMenu('Data')
         import_action = QAction('Import from Space Devs... (Coming Soon)', self)
@@ -348,3 +366,15 @@ class MainWindow(QMainWindow):
         """Handle window close"""
         self.db.close()
         event.accept()
+
+    def open_launch_site_window(self):
+        print("Launch Site menu clicked — add your window here")
+
+    def open_launch_vehicle_window(self):
+        print("Launch Vehicle menu clicked — add your window here")
+
+    def open_reentry_vehicle_window(self):
+        print("Re-entry Vehicle menu clicked — add your window here")
+
+    def open_support_ship_window(self):
+        print("Support Ship menu clicked — add your window here")
