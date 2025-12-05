@@ -249,16 +249,16 @@ class MainWindow(QMainWindow):
         # Timeline view - NEW in v1.1
         self.timeline_view = TimelineView(self.db)
         self.timeline_view.launch_selected.connect(self.edit_launch)
-        self.tab_widget.addTab(self.timeline_view, "Timeline View")
+        self.tab_widget.addTab(self.timeline_view, "Master Activity Schedule Launch")
         
         # Enhanced List view - Updated in v1.1
         self.list_view = EnhancedListView(self.db)
         self.list_view.launch_selected.connect(self.edit_launch)
-        self.tab_widget.addTab(self.list_view, "List View")
+        self.tab_widget.addTab(self.list_view, "Launch - List View")
         
         # Statistics view
         stats_widget = self.create_statistics_widget()
-        self.tab_widget.addTab(stats_widget, "Statistics")
+        self.tab_widget.addTab(stats_widget, "Launch Statistics")
         
         main_layout.addWidget(self.tab_widget)
         
